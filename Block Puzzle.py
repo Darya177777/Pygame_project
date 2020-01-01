@@ -23,7 +23,9 @@ screen.fill((0, 0, 0))
 count = 0
 FPS = 50
 board = None
+board_of_levels = None
 GRAVITY = 0.005
+level = 0
 clock = pygame.time.Clock()
 
 
@@ -177,8 +179,11 @@ def stop():
 
 
 def win(count):
-    global all_sprites
+    global all_sprites, level, board_of_levels, images
     if count >= 10:
+        board_of_levels.get_cell(level)
+        level += 1
+        images.update()
         intro_text = ["Сongratulations, you have won", "Play", 'Game rules']
         fon = load_image('win.png', 2)
         screen.blit(fon, (0, 0))
@@ -221,6 +226,29 @@ class Cuboc(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = 610
         self.rect.y = 80
+
+
+class Table(pygame.sprite.Sprite):
+    def __init__(self, group):
+        self.image = load_image('table.png', 2)
+        super().__init__(group)
+        self.rect = self.image.get_rect()
+        self.rect.x = 600
+        self.rect.y = 170
+
+
+class ChristmasImage(pygame.sprite.Sprite):
+    def __init__(self, group):
+        self.image = load_image('image1.png', 2)
+        super().__init__(group)
+        self.rect = self.image.get_rect()
+        self.rect.x = 600
+        self.rect.y = 450
+        self.number = 1
+
+    def update(self):
+        self.number += 1
+        self.image = load_image(f'image{self.number}.png', 2)
 
 
 class MainField:
@@ -356,6 +384,51 @@ def create_particles():
                  all_sprites)
 
 
+class BoardOfLevels:
+    def __init__(self, width, height, top, left):
+        self.width = width
+        self.height = height
+        self.board = [[0 for i in range(width)] for _ in range(height)]
+        self.left = left
+        self.top = top
+        self.cell_size = 44
+
+    def render(self):
+        for i in range(self.height):
+            for j in range(self.width):
+                pygame.draw.rect(screen, (255, 182, 193), (self.left + j * self.cell_size,
+                                                           self.top + i * self.cell_size,
+                                                           self.cell_size, self.cell_size))
+                pygame.draw.rect(screen, (220, 20, 60), (self.left + j * self.cell_size,
+                                                         self.top + i * self.cell_size,
+                                                         self.cell_size, self.cell_size), 1)
+                if self.board[i][j] == 0:
+                    pygame.draw.circle(screen, (220, 20, 60), (self.left + j * self.cell_size +
+                                                               self.cell_size // 2,
+                                                               self.top + i * self.cell_size +
+                                                               self.cell_size // 2),
+                                       self.cell_size // 2, 1)
+                elif self.board[i][j] == 1:
+                    pygame.draw.line(screen, (220, 20, 60), (self.left + j * self.cell_size,
+                                                             self.top + i * self.cell_size),
+                                     (self.cell_size // 2 + self.left + j * self.cell_size,
+                                      self.cell_size + self.top + i * self.cell_size), 3)
+                    pygame.draw.line(screen, (220, 20, 60), (self.cell_size // 2 + self.left +
+                                                             j * self.cell_size,
+                                                             self.cell_size + self.top +
+                                                             i * self.cell_size),
+                                     (self.left + j * self.cell_size + self.cell_size,
+                                      self.top + i * self.cell_size), 3)
+
+    def get_cell(self, number):
+        self.board[number // self.height][number % self.width] = 1
+
+
+table = pygame.sprite.Group()
+Table(table)
+board_of_levels = BoardOfLevels(3, 3, 270, 730)
+images = pygame.sprite.Group()
+ChristmasImage(images)
 start_screen()
 all_sprites = pygame.sprite.Group()
 cubok1 = pygame.sprite.Group()
@@ -363,7 +436,7 @@ Cuboc(all_sprites)
 
 
 def play():
-    global board, count, all_sprites
+    global board, count, all_sprites, board_of_levels, images
     board = MainField(15, 15, 35, 35, (221, 128, 204), (75, 0, 130), prozr=0, lines=1)
     miniboardone = MiniField(5, 5, 560, 35, (65, 105, 225), (75, 0, 130), prozr=1, lines=0)
     miniboardtwo = MiniField(5, 5, 560, 180, (65, 105, 225), (75, 0, 130), prozr=1, lines=0)
@@ -470,6 +543,9 @@ def play():
         miniboardone.render()
         miniboardtwo.render()
         miniboardthree.render()
+        table.draw(screen)
+        board_of_levels.render()
+        images.draw(screen)
         screen.blit(font.render(text, True, (75, 0, 130)), (640, 35))
         screen.blit(font2.render(str(count), True, (75, 0, 130)), (690, 100))
         all_sprites.draw(screen)
