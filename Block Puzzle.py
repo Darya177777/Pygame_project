@@ -3,7 +3,7 @@ import pygame
 import random
 import sys
 
-
+# list of figures where are the coordinates of the shaded cells of minifield
 LIST_OF_FIGURES = (((2, 1), (3, 1), (3, 2), (3, 3)), ((2, 1), (2, 2), (2, 3), (3, 1)),
                    ((2, 1), (2, 2), (2, 3), (3, 3)), ((1, 2), (2, 2), (3, 1), (3, 2)),
                    ((3, 0), (3, 1), (3, 2), (3, 3)), ((3, 1), (3, 2)), ((3, 1), (3, 2), (3, 3)),
@@ -16,7 +16,7 @@ LIST_OF_FIGURES = (((2, 1), (3, 1), (3, 2), (3, 3)), ((2, 1), (2, 2), (2, 3), (3
                    ((2, 1), (2, 2), (3, 2)), ((2, 1), (2, 2), (3, 1)), ((2, 2), (3, 1), (3, 2)),
                    ((1, 2), (2, 1), (2, 2), (3, 2)), ((2, 2), (3, 1), (3, 2), (3, 3)),
                    ((1, 1), (2, 1), (2, 2), (3, 1)), ((2, 1), (2, 2), (2, 3), (3, 2)))
-
+# initializing the game, the assignment of values to the constants and important variables
 pygame.init()
 screen = pygame.display.set_mode([1050, 770])
 screen.fill((0, 0, 0))
@@ -29,7 +29,8 @@ level = 0
 clock = pygame.time.Clock()
 
 
-class Mouse_my(pygame.sprite.Sprite):
+class MouseMy(pygame.sprite.Sprite):
+    """mouse class for implementing click actions on an object"""
     def __init__(self, group):
         super().__init__(group)
         self.rect = pygame.Rect(pygame.mouse.get_pos(), (1, 1))
@@ -41,10 +42,11 @@ class Mouse_my(pygame.sprite.Sprite):
 
 
 mouse1 = pygame.sprite.Group()
-Mouse_my(mouse1)
+MouseMy(mouse1)
 
 
 def print_rules():
+    """this function shows a screen with the rules of the game"""
     intro_text = ["Back", ' ', 'Welcome to Block Puzzle!',
                   ' The game consists of 9 levels, each more difficult than the previous one. The ',
                   'screen shows the main field and 3 figures below it. Also on the right there '
@@ -61,7 +63,7 @@ def print_rules():
                   'complete the ', '         victory you need to pass all the levels.', ' ',
                   ' Good luck!']
     screen.fill((255, 255, 255))
-    fon = load_image('rules.png', 1)
+    fon = load_image('rules2.png', 1)
     screen.blit(fon, (0, 0))
     font = pygame.font.Font(None, 30)
     text_coord = 80
@@ -72,7 +74,7 @@ def print_rules():
         intro_rect = string_rendered.get_rect()
         text_coord += 10
         intro_rect.top = text_coord
-        intro_rect.x = 100
+        intro_rect.x = 150
         text_coord += intro_rect.height
         rects.append(intro_rect)
         screen.blit(string_rendered, intro_rect)
@@ -92,11 +94,13 @@ def print_rules():
 
 
 def terminate():
+    """this function closes the game window and stops the program"""
     pygame.quit()
     sys.exit()
 
 
 def start_screen(f=0):
+    """this function shows a start screen"""
     intro_text = ["Game rules", "Play"]
     fon = load_image('Zastavka.png', 2)
     screen.fill((0, 0, 0))
@@ -135,6 +139,7 @@ def start_screen(f=0):
 
 
 def load_image(name, colorkey=None):
+    """function converts the image for ease of working with it"""
     fullname = os.path.join('data', name)
     image = pygame.image.load(fullname)
     if colorkey == -1:
@@ -150,6 +155,7 @@ def load_image(name, colorkey=None):
 
 
 def stop():
+    """function shows the screen when you lose and resets the variables"""
     global level
     intro_text = ["Unfortunately, time is up!", "Restart", 'Game rules']
     fon = load_image('stop.png', 2)
@@ -184,9 +190,10 @@ def stop():
         clock.tick(FPS)
 
 
-def win(count):
-    global all_sprites, level, board_of_levels, images
-    if count >= 10:
+def win():
+    """function shows the screen when you win"""
+    global all_sprites, level, board_of_levels, images, count
+    if count >= (level + 1) * 11:
         board_of_levels.get_cell(level)
         level += 1
         if level == 9:
@@ -229,6 +236,7 @@ def win(count):
 
 
 def big_win():
+    """function shows the screen when you win and passed all levels"""
     global level
     intro_text = ["You have won this game!", "Restart"]
     fon = load_image('win.png', 2)
@@ -259,7 +267,8 @@ def big_win():
         clock.tick(FPS)
 
 
-class Cuboc(pygame.sprite.Sprite):
+class Beaker(pygame.sprite.Sprite):
+    """class for show image Beaker"""
     def __init__(self, group):
         self.image = pygame.transform.scale(load_image('kubok2.png', -1), (50, 50))
         super().__init__(group)
@@ -269,6 +278,7 @@ class Cuboc(pygame.sprite.Sprite):
 
 
 class Table(pygame.sprite.Sprite):
+    """class for show image table of results"""
     def __init__(self, group):
         self.image = load_image('table.png', 2)
         super().__init__(group)
@@ -278,6 +288,7 @@ class Table(pygame.sprite.Sprite):
 
 
 class ChristmasImage(pygame.sprite.Sprite):
+    """class for show Christmas images which change at each level"""
     def __init__(self, group):
         self.image = load_image('image1.png', 2)
         super().__init__(group)
@@ -296,24 +307,24 @@ class ChristmasImage(pygame.sprite.Sprite):
 
 
 class MainField:
-    # создание поля
-    def __init__(self, width, height, top, left, color1, color2, prozr=0, lines=0):
+    """this is main field, shapes are dragged here"""
+    def __init__(self, width, height, top, left, color1, color2, visibility=0, lines=0):
         self.width = width
         self.height = height
         self.board = [[0 for i in range(width)] for _ in range(height)]
-        # значения по умолчанию
         self.left = left
         self.top = top
         self.cell_size = 35
         self.color1 = color1
         self.color2 = color2
         self.lines = lines
-        self.p = prozr
+        self.visibility = visibility
 
     def render(self):
+        # draw field
         for i in range(self.height):
             for j in range(self.width):
-                if self.board[i][j] == 0 and self.p == 0:
+                if self.board[i][j] == 0 and self.visibility == 0:
                     pygame.draw.rect(screen, self.color1, (self.left + j * self.cell_size,
                                                            self.top + i * self.cell_size,
                                                            self.cell_size, self.cell_size))
@@ -327,6 +338,8 @@ class MainField:
                                                            self.cell_size, self.cell_size))
 
     def get_cell(self, pos, draw=0):
+        # the cell is checked(empty or not) if the flag 'draw' is set (all cells of the figure are
+        # checked) then the cell is painted over
         global count
         cell = None
         for i in range(self.height):
@@ -359,44 +372,48 @@ class MainField:
 
 
 class MiniField(MainField):
+    """this is field with figure which forms random"""
     def create_figure(self):
-        p = random.randrange(0, 26)
-        self.figure = LIST_OF_FIGURES[p]
+        # form figure, field
+        self.figure = LIST_OF_FIGURES[random.randrange(0, 26)]
         self.board = [[0 for i in range(self.width)] for _ in range(self.height)]
         for e in self.figure:
             self.board[e[0]][e[1]] = 1
 
     def click(self, x, y):
-        otvet = False
+        # checking the mouse click on the figure
+        answer = False
         for i in range(len(self.figure)):
             if (self.left + self.figure[i][1] * 35 <= x <= self.left + self.figure[i][1] * 35 + 35
                     and self.top + self.figure[i][0] * 35 <= y <= self.top + self.figure[i][0] * 35
                     + 35):
-                otvet = self.figure[i]
+                answer = self.figure[i]
                 break
-        return otvet
+        return answer
 
     def update(self, x, y):
         self.top = y
         self.left = x
 
     def check_in_field(self):
-        otvet = True
+        # check whether the field falls into the field
+        answer = True
         for i in range(len(self.figure)):
             if not board.get_cell((self.left + self.figure[i][1] * 35, self.top + self.figure[i][0] * 35)):
-                otvet = False
+                answer = False
                 break
-        if otvet is True:
+        if answer is True:
             for i in range(len(self.figure)):
                 board.get_cell(
                     (self.left + self.figure[i][1] * 35, self.top + self.figure[i][0] * 35), draw=1)
-        return otvet
+        return answer
 
 
 screen_rect = (0, 0, 1050, 770)
 
 
 class Particle(pygame.sprite.Sprite):
+    """snowflake class"""
     def __init__(self, pos, dx, dy, n, group):
         super().__init__(group)
         self.fire = [pygame.transform.scale(load_image(f"sn{n}.png", -1), (40, 40))]
@@ -405,12 +422,13 @@ class Particle(pygame.sprite.Sprite):
             self.fire.append(pygame.transform.scale(self.fire[0], (scale, scale)))
         self.image = random.choice(self.fire)
         self.rect = self.image.get_rect()
-        self.velocity = [dx, dy]  # скорости по осям координат
+        self.velocity = [dx, dy]
         self.rect.x, self.rect.y = pos
         self.gravity = GRAVITY
 
     def update(self):
-        self.velocity[1] += self.gravity  # ускорение
+        # falling snowflakes
+        self.velocity[1] += self.gravity
         self.rect.x += self.velocity[0]
         self.rect.y += self.velocity[1]
         # test if two rectangles overlap
@@ -419,9 +437,10 @@ class Particle(pygame.sprite.Sprite):
 
 
 def create_particles():
+    """random formation of snowflakes"""
     particle_count = 30
     numbers = range(-1, 1)
-    numbers2 = range(1, 4)  # скорости на выбор
+    numbers2 = range(1, 4)
     for z in range(particle_count):
         Particle((random.choice(range(0, 20)) * 50, random.choice(range(0, 1)) * 50),
                  random.choice(numbers), random.choice(numbers2), random.choice(range(1, 5)),
@@ -429,6 +448,7 @@ def create_particles():
 
 
 class BoardOfLevels:
+    """the Board noted the passing of the levels"""
     def __init__(self, width, height, top, left):
         self.width = width
         self.height = height
@@ -438,6 +458,7 @@ class BoardOfLevels:
         self.cell_size = 44
 
     def render(self):
+        # draw board if the level is passed it is marked with a tick otherwise a circle
         for i in range(self.height):
             for j in range(self.width):
                 pygame.draw.rect(screen, (255, 182, 193), (self.left + j * self.cell_size,
@@ -465,9 +486,11 @@ class BoardOfLevels:
                                       self.top + i * self.cell_size), 3)
 
     def get_cell(self, number):
+        # mark level is passed
         self.board[number // self.height][number % self.width] = 1
 
     def zero(self):
+        # reset game results
         self.board = [[0 for i in range(self.width)] for _ in range(self.height)]
 
 
@@ -477,16 +500,18 @@ board_of_levels = BoardOfLevels(3, 3, 270, 730)
 images = pygame.sprite.Group()
 ChristmasImage(images)
 all_sprites = pygame.sprite.Group()
-cubok1 = pygame.sprite.Group()
-Cuboc(cubok1)
+beaker1 = pygame.sprite.Group()
+Beaker(beaker1)
 
 
 def play(f=0):
-    global board, count, all_sprites, board_of_levels, images
-    board = MainField(15, 15, 35, 35, (221, 128, 204), (75, 0, 130), prozr=0, lines=1)
-    miniboardone = MiniField(5, 5, 560, 35, (65, 105, 225), (75, 0, 130), prozr=1, lines=0)
-    miniboardtwo = MiniField(5, 5, 560, 180, (65, 105, 225), (75, 0, 130), prozr=1, lines=0)
-    miniboardthree = MiniField(5, 5, 560, 385, (65, 105, 225), (75, 0, 130), prozr=1, lines=0)
+    """main function of the game"""
+    global board, count, all_sprites, board_of_levels, images, level
+    # set the main elements and variables
+    board = MainField(15, 15, 35, 35, (221, 128, 204), (75, 0, 130), 0, 1)
+    miniboardone = MiniField(5, 5, 560, 35, (65, 105, 225), (75, 0, 130), 1, 0)
+    miniboardtwo = MiniField(5, 5, 560, 180, (65, 105, 225), (75, 0, 130), 1, 0)
+    miniboardthree = MiniField(5, 5, 560, 385, (65, 105, 225), (75, 0, 130), 1, 0)
     if f == 1:
         board_of_levels.zero()
         for e in images:
@@ -506,12 +531,13 @@ def play(f=0):
     miniboardone.create_figure()
     miniboardtwo.create_figure()
     miniboardthree.create_figure()
-    counter = 60
-    text = '1:00'.rjust(5)
+    counter = (level + 1) * 60
+    text = f'{level + 1}:00'.rjust(5)
     pygame.time.set_timer(pygame.USEREVENT, 1000)
     font = pygame.font.SysFont('', 45)
     font2 = pygame.font.SysFont('', 55)
     pygame.display.flip()
+    # the main game loop
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -589,6 +615,7 @@ def play(f=0):
                         miniboardthree.create_figure()
                     else:
                         miniboardthree.update(xthree, ythree)
+        # updating and drawing elements
         screen.fill((65, 105, 225))
         board.render()
         miniboardone.render()
@@ -604,7 +631,8 @@ def play(f=0):
         all_sprites.update()
         clock.tick(FPS)
         pygame.display.flip()
-        win(count)
+        # check on win
+        win()
 
 
 start_screen()
