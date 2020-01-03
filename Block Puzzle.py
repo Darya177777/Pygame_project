@@ -96,7 +96,7 @@ def terminate():
     sys.exit()
 
 
-def start_screen():
+def start_screen(f=0):
     intro_text = ["Game rules", "Play"]
     fon = load_image('Zastavka.png', 2)
     screen.fill((0, 0, 0))
@@ -120,8 +120,12 @@ def start_screen():
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if (rects[1].left <= pygame.mouse.get_pos()[0] <= rects[1].left + rects[1].width and
                         rects[1].top <= pygame.mouse.get_pos()[1] <= rects[1].top +
-                        rects[1].height):
+                        rects[1].height) and f == 0:
                     return
+                if (rects[1].left <= pygame.mouse.get_pos()[0] <= rects[1].left + rects[1].width and
+                        rects[1].top <= pygame.mouse.get_pos()[1] <= rects[1].top +
+                        rects[1].height) and f == 1:
+                    play(1)
                 if (rects[0].left <= pygame.mouse.get_pos()[0] <= rects[0].left + rects[0].width and
                         rects[0].top <= pygame.mouse.get_pos()[1] <= rects[0].top +
                         rects[0].height):
@@ -146,12 +150,14 @@ def load_image(name, colorkey=None):
 
 
 def stop():
+    global level
     intro_text = ["Unfortunately, time is up!", "Restart", 'Game rules']
     fon = load_image('stop.png', 2)
     screen.blit(fon, (0, 0))
     font = pygame.font.Font(None, 60)
     text_coord = 120
     rects = []
+    level = 0
     for line in intro_text:
         string_rendered = font.render(line, 1, (150, 30, 20))
         intro_rect = string_rendered.get_rect()
@@ -169,7 +175,7 @@ def stop():
                 if (rects[1].left <= pygame.mouse.get_pos()[0] <= rects[1].left + rects[1].width and
                         rects[1].top <= pygame.mouse.get_pos()[1] <= rects[1].top +
                         rects[1].height):
-                    play()
+                    start_screen(1)
                 if (rects[2].left <= pygame.mouse.get_pos()[0] <= rects[2].left + rects[2].width and
                         rects[2].top <= pygame.mouse.get_pos()[1] <= rects[2].top +
                         rects[2].height):
@@ -183,40 +189,74 @@ def win(count):
     if count >= 10:
         board_of_levels.get_cell(level)
         level += 1
-        images.update()
-        intro_text = ["Сongratulations, you have won", "Play", 'Game rules']
-        fon = load_image('win.png', 2)
-        screen.blit(fon, (0, 0))
-        font = pygame.font.Font(None, 60)
-        text_coord = 120
-        rects = []
-        for line in intro_text:
-            string_rendered = font.render(line, 1, (250, 30, 20))
-            intro_rect = string_rendered.get_rect()
-            text_coord += 10
-            intro_rect.top = text_coord
-            intro_rect.x = 30
-            text_coord += intro_rect.height
-            rects.append(intro_rect)
-            screen.blit(string_rendered, intro_rect)
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    terminate()
-                elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                    if (rects[1].left <= pygame.mouse.get_pos()[0] <= rects[1].left + rects[
-                        1].width and
-                            rects[1].top <= pygame.mouse.get_pos()[1] <= rects[1].top +
-                            rects[1].height):
-                        all_sprites = pygame.sprite.Group()
-                        play()
-                    if (rects[2].left <= pygame.mouse.get_pos()[0] <= rects[2].left + rects[
-                        2].width and
-                            rects[2].top <= pygame.mouse.get_pos()[1] <= rects[2].top +
-                            rects[2].height):
-                        print_rules()
-            pygame.display.flip()
-            clock.tick(FPS)
+        if level == 9:
+            big_win()
+        else:
+            images.update()
+            intro_text = ["Сongratulations, you have won", "Play", 'Game rules']
+            fon = load_image('win.png', 2)
+            screen.blit(fon, (0, 0))
+            font = pygame.font.Font(None, 60)
+            text_coord = 120
+            rects = []
+            for line in intro_text:
+                string_rendered = font.render(line, 1, (250, 30, 20))
+                intro_rect = string_rendered.get_rect()
+                text_coord += 10
+                intro_rect.top = text_coord
+                intro_rect.x = 30
+                text_coord += intro_rect.height
+                rects.append(intro_rect)
+                screen.blit(string_rendered, intro_rect)
+            while True:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        terminate()
+                    elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                        if (rects[1].left <= pygame.mouse.get_pos()[0] <= rects[1].left + rects[
+                            1].width and
+                                rects[1].top <= pygame.mouse.get_pos()[1] <= rects[1].top +
+                                rects[1].height):
+                            all_sprites = pygame.sprite.Group()
+                            play()
+                        if (rects[2].left <= pygame.mouse.get_pos()[0] <= rects[2].left + rects[
+                            2].width and
+                                rects[2].top <= pygame.mouse.get_pos()[1] <= rects[2].top +
+                                rects[2].height):
+                            print_rules()
+                pygame.display.flip()
+                clock.tick(FPS)
+
+
+def big_win():
+    global level
+    intro_text = ["You have won this game!", "Restart"]
+    fon = load_image('win.png', 2)
+    screen.blit(fon, (0, 0))
+    font = pygame.font.Font(None, 60)
+    text_coord = 120
+    rects = []
+    level = 0
+    for line in intro_text:
+        string_rendered = font.render(line, 1, (150, 30, 20))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 30
+        text_coord += intro_rect.height
+        rects.append(intro_rect)
+        screen.blit(string_rendered, intro_rect)
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                if (rects[1].left <= pygame.mouse.get_pos()[0] <= rects[1].left + rects[1].width and
+                        rects[1].top <= pygame.mouse.get_pos()[1] <= rects[1].top +
+                        rects[1].height):
+                    start_screen(1)
+        pygame.display.flip()
+        clock.tick(FPS)
 
 
 class Cuboc(pygame.sprite.Sprite):
@@ -249,6 +289,10 @@ class ChristmasImage(pygame.sprite.Sprite):
     def update(self):
         self.number += 1
         self.image = load_image(f'image{self.number}.png', 2)
+
+    def zero(self):
+        self.number = 1
+        self.image = load_image('image1.png', 2)
 
 
 class MainField:
@@ -423,24 +467,31 @@ class BoardOfLevels:
     def get_cell(self, number):
         self.board[number // self.height][number % self.width] = 1
 
+    def zero(self):
+        self.board = [[0 for i in range(self.width)] for _ in range(self.height)]
+
 
 table = pygame.sprite.Group()
 Table(table)
 board_of_levels = BoardOfLevels(3, 3, 270, 730)
 images = pygame.sprite.Group()
 ChristmasImage(images)
-start_screen()
 all_sprites = pygame.sprite.Group()
 cubok1 = pygame.sprite.Group()
-Cuboc(all_sprites)
+Cuboc(cubok1)
 
 
-def play():
+def play(f=0):
     global board, count, all_sprites, board_of_levels, images
     board = MainField(15, 15, 35, 35, (221, 128, 204), (75, 0, 130), prozr=0, lines=1)
     miniboardone = MiniField(5, 5, 560, 35, (65, 105, 225), (75, 0, 130), prozr=1, lines=0)
     miniboardtwo = MiniField(5, 5, 560, 180, (65, 105, 225), (75, 0, 130), prozr=1, lines=0)
     miniboardthree = MiniField(5, 5, 560, 385, (65, 105, 225), (75, 0, 130), prozr=1, lines=0)
+    if f == 1:
+        board_of_levels.zero()
+        for e in images:
+            e.zero()
+    all_sprites = pygame.sprite.Group()
     running = True
     count = 0
     r1one = 0
@@ -556,5 +607,6 @@ def play():
         win(count)
 
 
+start_screen()
 play()
 pygame.quit()
